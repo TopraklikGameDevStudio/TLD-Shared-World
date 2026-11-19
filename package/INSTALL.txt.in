@@ -1,0 +1,108 @@
+TLD SHARED WORLD (ORTAK DÜNYA) - INSTALLING (version {V}, beta)
+================================================================
+
+A co-op mod for The Long Dark: play with friends in one shared world.
+Not made or endorsed by Hinterland Studio. You need your own copy of the game.
+Everyone needs the SAME game version and the SAME mod version.
+Back up your saves before you try it:
+  C:\Users\<you>\AppData\Local\Hinterland\TheLongDark
+Türkçe: KURULUM.txt
+
+
+1) INSTALL MELONLOADER (once)
+-----------------------------
+ a) Download MelonLoader.Installer.exe:
+    https://github.com/LavaGang/MelonLoader.Installer/releases
+ b) Run it and pick "The Long Dark" (or "Add game" and point it to tld.exe
+    in the game folder).
+ c) Choose version 0.7.3 and press "Install".
+ d) Start the game once and close it (the first start can take a few
+    minutes and shows a black window full of text: that is normal).
+
+
+2) INSTALL THE MOD
+------------------
+ a) Close the game.
+ b) Double-click "install.bat" and answer its questions.
+    By hand: copy Mods\TLDCoop.dll into the game's Mods folder and the
+    three DLLs in UserLibs into the game's UserLibs folder.
+ c) Start the game. The black window should list
+    "TLD Shared World (Ortak Dunya)".
+
+
+3) PLAYING
+----------
+Everything is in the game's menu: "CO-OP" in the main menu and the Esc menu.
+
+HOST (the world's owner):
+ - Load your own survival save.
+ - Esc > CO-OP > HOST.
+ - The same menu shows your address: "INTERNET: ..." (for a friend in
+   another home) or "HOME NETWORK: ..." (same home). Choosing it copies it;
+   send it to your friend.
+
+JOINING FRIEND:
+ - Copy the address your friend sent (Ctrl+C).
+ - Main menu > CO-OP > "JOIN (COPIED): address" (or TYPE ADDRESS).
+ - Wait for "SHARED WORLD READY", then open Survival > Load.
+   The ORTAK DUNYA save opens by itself.
+
+INTERNET: when you host, the mod asks your router to open UDP port 27500
+(UPnP). If it says your router did not open it, turn on UPnP in the router
+or forward UDP 27500 to this PC. If that is not possible, install the same
+VPN on both PCs (Radmin VPN, Tailscale, Hamachi) and use its address.
+
+
+4) KEYS
+-------
+ Esc > CO-OP     host, join, copy your address, leave, feedback
+ F9 / F10 / F11  shortcuts: host / join / leave
+ F6   status, your address and the key list
+ F3   revive a downed friend (hold 5 s) / give up while down (hold 3 s)
+ F8   get up while the others are not asleep yet; finish a long job now
+ T    push to talk     B  whistle     V  give what is in your hands
+      (or the item selected in the inventory)
+ (if the game already uses B or V, the mod picks a free key and tells you)
+
+Settings: UserData\MelonPreferences.cfg in the game folder, under [TLDCoop].
+For example: DostAtesi = false (no friendly fire), IsSuresi = false (long
+jobs do not wait), SesliKonusma = false (no voice), Dil = tr (Turkish).
+
+
+5) KNOWN ISSUES
+---------------
+ - Most testing ran two copies of the game on one PC; a full session
+   between two homes over the internet has not been done yet.
+ - Tested with 2 players; 3-4 players not tried yet (the server takes 4).
+ - No password: while your server is open, anyone with your address and the
+   mod can join. Share it only with friends and stop the server afterwards.
+ - Playing over the internet needs UPnP, port forwarding or a VPN.
+ - Different game or mod versions are refused; a game update can break the
+   mod until a new version is out.
+ - Survival mode only; no story mode; challenges and Tales not tested.
+ - The world lives in the host's save; without the host there is no
+   shared world to play in.
+ - Long jobs wait in real time (a 2-hour job is about 10 minutes).
+ - Your friend is drawn with the mod's own model; clothes by kind and
+   colour, simple animations.
+ - Voice uses Windows' default microphone and speakers, no echo or noise
+   filtering.
+ - Ctrl+V in the address box is untested (JOIN (COPIED) does the same job).
+ - No in-game settings screen; the mod is in English and Turkish only.
+
+
+6) FEEDBACK AND SUPPORT
+-----------------------
+Bugs and ideas: destek@topraklikgamedevstudio.com
+(In the game, CO-OP > FEEDBACK copies the address.)
+Please include: mod and game version, Steam or Epic, host or joining, what
+happened; and these log files:
+  <game folder>\MelonLoader\Latest.log
+  <game folder>\UserData\TLDCoop-*.log (the newest one)
+
+The mod's page (downloads, known issues, optional donations):
+  {PAGE}
+The mod is free and stays free; donations are optional and unlock nothing.
+
+Licence: GNU GPL v3 (licenses\LICENSE-TLDCoop.txt). LiteNetLib and NAudio are
+MIT licensed (licenses folder). Made by Topraklık Game Dev Studio.
