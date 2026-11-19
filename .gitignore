@@ -1,0 +1,10 @@
+# the game's and MelonLoader's assemblies (see README: Building from source)
+refs/
+# build output
+src/bin/
+src/obj/
+src/out/
+dist/
+*.user
+.vs/
+__pycache__/
