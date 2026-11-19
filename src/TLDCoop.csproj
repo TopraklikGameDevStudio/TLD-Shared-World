@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>TLDCoop</AssemblyName>
+    <RootNamespace>TLDCoop</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <NoWarn>CS0618;CS8632</NoWarn>
+    <!-- the game's Il2Cpp assemblies, made by MelonLoader (not in this repository; see README) -->
+    <Refs Condition="'$(Refs)' == ''">$(MSBuildThisFileDirectory)../refs</Refs>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- the friend's skinned body (format in SurvivorFile.cs; make_placeholder.py writes a stand-in, check_survivor.py reads it the way the mod does) -->
+    <EmbeddedResource Include="survivor.bin" LogicalName="TLDCoop.survivor.bin" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="LiteNetLib" Version="1.3.1" />
+    <PackageReference Include="NAudio.Core" Version="2.2.1" />
+    <PackageReference Include="NAudio.WinMM" Version="2.2.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="MelonLoader"><HintPath>$(Refs)/MelonLoader.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="0Harmony"><HintPath>$(Refs)/0Harmony.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Runtime"><HintPath>$(Refs)/Il2CppInterop.Runtime.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppInterop.Common"><HintPath>$(Refs)/Il2CppInterop.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Assembly-CSharp"><HintPath>$(Refs)/Assembly-CSharp.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2Cppmscorlib"><HintPath>$(Refs)/Il2Cppmscorlib.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppSystem"><HintPath>$(Refs)/Il2CppSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppRewired_Core"><HintPath>$(Refs)/Il2CppRewired_Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppTLD.PDID"><HintPath>$(Refs)/Il2CppTLD.PDID.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppTLD.IntBackedUnit"><HintPath>$(Refs)/Il2CppTLD.IntBackedUnit.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppTLD.SaveState"><HintPath>$(Refs)/Il2CppTLD.SaveState.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Il2CppTLD.Addressables"><HintPath>$(Refs)/Il2CppTLD.Addressables.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.Addressables"><HintPath>$(Refs)/Unity.Addressables.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine"><HintPath>$(Refs)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.CoreModule"><HintPath>$(Refs)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(Refs)/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.PhysicsModule"><HintPath>$(Refs)/UnityEngine.PhysicsModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AnimationModule"><HintPath>$(Refs)/UnityEngine.AnimationModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AIModule"><HintPath>$(Refs)/UnityEngine.AIModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.AudioModule"><HintPath>$(Refs)/UnityEngine.AudioModule.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextRenderingModule"><HintPath>$(Refs)/UnityEngine.TextRenderingModule.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
