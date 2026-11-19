@@ -2,7 +2,7 @@
 
 **The Long Dark için co-op modu: arkadaşlarınla gerçekten ortak tek bir dünyada oyna.**
 
-[English](README.md) · [İndir](../../releases/latest) · [Bilinen eksikler](#bilinen-eksikler) · [Geri bildirim](#geri-bildirim) · [Modu destekle](#modu-destekle)
+[English](README.md) · [İndir](../../releases) · [Bilinen eksikler](#bilinen-eksikler) · [Geri bildirim](#geri-bildirim) · [Modu destekle](#modu-destekle)
 
 > **Deneme sürümü.** Mod çalışıyor ve birçok test turundan geçti, ama hâlâ yeni.
 > Denemeden önce kayıtlarını yedekle ve bozulan bir şey olursa lütfen [bize yaz](#geri-bildirim).
@@ -44,7 +44,7 @@ kaçar, aynı geceyi uyuyarak geçirirsiniz.
 
 1. MelonLoader kurucusuyla The Long Dark'a MelonLoader 0.7.3'ü kur, sonra oyunu bir kez açıp kapat
    (ilk açılış birkaç dakika sürebilir).
-2. [Sürümler](../../releases/latest) sayfasından `TLD-Shared-World-<sürüm>.zip` dosyasını indirip aç.
+2. [Sürümler](../../releases) sayfasından `TLD-Shared-World-<sürüm>.zip` dosyasını indirip aç.
 3. Oyunu kapat ve `install.bat` dosyasına çift tıkla (Steam ve Epic kurulumunu kendisi bulur, önce sorar).
    Elle: `Mods\TLDCoop.dll` dosyasını oyunun `Mods` klasörüne, `UserLibs` içindeki üç DLL'i oyunun
    `UserLibs` klasörüne kopyala.

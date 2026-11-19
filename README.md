@@ -2,7 +2,7 @@
 
 **A co-op mod for The Long Dark: play with friends in one truly shared world.**
 
-[Türkçe](README.tr.md) · [Download](../../releases/latest) · [Known issues](#known-issues) · [Feedback](#feedback) · [Support the mod](#support-the-mod)
+[Türkçe](README.tr.md) · [Download](../../releases) · [Known issues](#known-issues) · [Feedback](#feedback) · [Support the mod](#support-the-mod)
 
 > **Beta.** The mod works and has been played through many test rounds, but it is still young.
 > Back up your saves before you try it, and please [tell us](#feedback) what breaks.
@@ -45,7 +45,7 @@ run from the same wolf and sleep through the same night.
 
 1. Install MelonLoader 0.7.3 for The Long Dark with the MelonLoader installer, then start the game once
    and close it (the first start can take a few minutes).
-2. Download `TLD-Shared-World-<version>.zip` from [Releases](../../releases/latest) and unzip it.
+2. Download `TLD-Shared-World-<version>.zip` from [Releases](../../releases) and unzip it.
 3. Close the game and double-click `install.bat` (it finds Steam and Epic installs and asks first).
    By hand: copy `Mods\TLDCoop.dll` into the game's `Mods` folder and the three DLLs in `UserLibs`
    into the game's `UserLibs` folder.
