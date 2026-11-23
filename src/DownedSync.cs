@@ -79,6 +79,11 @@ namespace TLDCoop
         private bool _ownNeverDie, _origNeverDie, _ownInvulnerable, _origInvulnerable, _ownGhost, _origGhost, _origCheats;
         private bool _swappedCond, _swappedPlayer;
         private float _unsharedSince = -1f;
+        // nobody left on their feet: the game ends for real after a short countdown (see TickDowned / RealDeath)
+        private float _nobodySince = -1f;
+        private bool _realDeath; private float _realDeathAt; private bool _realDeathPushed;
+        internal bool RealDeathUnderWay => _realDeath;
+        internal int RealDeaths;
         private float _nextNotice, _nextPin, _zeroSince = -1f;
         private string _notice;
         private int _pinBacks, _panelsClosed;
@@ -278,6 +283,7 @@ namespace TLDCoop
             float now = Time.realtimeSinceStartup;
             bool inGame = false;
             try { inGame = WorldSync.InGame(); } catch { }
+            try { TickRealDeath(inGame, now); } catch (Exception e) { Oops("real death", e); }
             try { RefreshGuard(inGame, now); } catch (Exception e) { Oops("guard", e); }
             try { TrackPlaces(inGame, now); } catch (Exception e) { Oops("places", e); }
             try
@@ -330,6 +336,7 @@ namespace TLDCoop
         private bool ComputeGuard(bool inGame, out string why, out bool coopSlot)
         {
             coopSlot = false;
+            if (_realDeath) { why = "game over: nobody was left standing, the game's own death runs"; return false; }
             if (!SafePref()) { why = "switched off (YereYigilma)"; return false; }
             if (!inGame) { why = "not in a game"; return false; }
             bool story = false; try { story = GameManager.IsStoryMode(); } catch { }
@@ -374,6 +381,7 @@ namespace TLDCoop
         /// </summary>
         private bool HookGuard()
         {
+            if (_realDeath) return false;
             bool inGame = false; try { inGame = WorldSync.InGame(); } catch { }
             if (ComputeGuard(inGame, out _, out _)) { _lastGuardedMs = NowMs; return true; }
             if (_down || _pendingCause != null) return true;
@@ -404,6 +412,7 @@ namespace TLDCoop
         /// </summary>
         internal bool BlockDelete(string name, uint gameId, bool byId, string where)
         {
+            if (_realDeath) return false; // the game is over: its own death may delete the save, as in single player
             bool match = byId ? _guardGameIdKnown && !string.IsNullOrEmpty(_guardSlot) && gameId == _guardGameId
                               : !string.IsNullOrEmpty(name) && name == _guardSlot;
             if (!match) return false;
@@ -542,7 +551,7 @@ namespace TLDCoop
             if (t == null || pm == null || cond == null) { CoopMod.Log("Going down: no player object right now, nothing done"); return; }
             _down = true; DownFast = true; Downs++;
             _downAt = now; _deadline = now + SafeMinutes() * 60f; _downScene = CoopMod.CurrentScene() ?? ""; _downPos = t.position; _downCause = cause;
-            _giveUpSince = -1f; _giveUpNow = false; _reviveBy = Nobody; _settle = true; _settleUntil = now + 3f; _unsharedSince = -1f;
+            _giveUpSince = -1f; _giveUpNow = false; _reviveBy = Nobody; _settle = true; _settleUntil = now + 3f; _unsharedSince = -1f; _nobodySince = -1f;
             _nextNotice = 0f; _nextPin = 0f; _pinBacks = 0; _panelsClosed = 0; _zeroSince = -1f; _fadeAsked = false; _unfadeCheckAt = -1f;
             try { cond.m_CurrentHP = Floor(cond); } catch (Exception e) { Oops("floor", e); }
             _needsKnown = false;
@@ -570,7 +579,9 @@ namespace TLDCoop
 
             bool help = SomeoneCanCome();
             CoopMod.Log($"You went down ({cause}) in {_downScene} at {P(_downPos)}: " + (help ? $"a friend has {SafeMinutes()} min to lift you" : "nobody else is in the world"));
-            if (!help) { Die("nobody_could_come", now); return; }
+            if (!help && !InLiveWorld()) { Die("nobody_could_come", now); return; }
+            _nobodySince = help ? -1f : now;
+            if (!help) CoopMod.Log($"Nobody is left standing: the game ends in {GameOverSeconds():0} s unless someone gets up");
             try { HoldLock(pm, cond); } catch (Exception e) { Oops("lock", e); }
             try { ClosePanels(); } catch (Exception e) { Oops("panels", e); }
             // what the player is told from now on, every few seconds, with the time counting down (written to the log once)
@@ -608,6 +619,12 @@ namespace TLDCoop
             }
             else if (_giveUpSince >= 0f) { _giveUpSince = -1f; _nextNotice = 0f; }
             if (now >= _deadline) { Die("bled_out", now); return; }
+            if (InLiveWorld() && !SomeoneCanCome())
+            {
+                if (_nobodySince < 0f) { _nobodySince = now; _nextNotice = 0f; CoopMod.Log($"Nobody is left standing: the game ends in {GameOverSeconds():0} s unless someone gets up"); }
+                if (now - _nobodySince >= GameOverSeconds()) { RealDeath("nobody_standing", now); return; }
+            }
+            else if (_nobodySince >= 0f) { _nobodySince = -1f; _nextNotice = 0f; CoopMod.Log("Someone is on their feet again: the countdown to the end stops"); }
 
             // then the holds, each on its own
             try { HoldCondition(cond); } catch (Exception e) { Oops("hold condition", e); }
@@ -625,6 +642,13 @@ namespace TLDCoop
                 {
                     _nextNotice = now + 1f;
                     _notice = L.T("Vazgeçiliyor… ", "Giving up… ") + Mathf.CeilToInt(GiveUpHoldSeconds - (now - _giveUpSince));
+                    Line(_notice, 0.9f);
+                }
+                else if (_nobodySince >= 0f)
+                {
+                    _nextNotice = now + 1f;
+                    int sec = Mathf.Max(0, Mathf.CeilToInt(GameOverSeconds() - (now - _nobodySince)));
+                    _notice = L.T($"Ayakta kimse kalmadı! {sec} saniye sonra oyun biter.", $"Nobody is left standing! The game ends in {sec} seconds.");
                     Line(_notice, 0.9f);
                 }
                 else
@@ -684,7 +708,7 @@ namespace TLDCoop
                 {
                     pm.SetControlMode(PlayerControlMode.Normal);
                     // whatever the game later "goes back to" must not be our lock
-                    if (pm.m_PreviousControlMode == PlayerControlMode.Locked) pm.m_PreviousControlMode = PlayerControlMode.Normal;
+                    Compat.UnlockReturnMode(pm);
                 }
             }
             catch (Exception e) { Oops("unlock", e); }
@@ -914,6 +938,60 @@ namespace TLDCoop
             try { HUDMessage.AddMessage(L.T($"{why} {where} kendine geldin. {gear}", $"{why} {where} {gear}"), 9f, true, true); } catch { }
             CoopMod.Log($"{why} {where} kendine geldin. {gear}");
             SendNote(3, ReasonCode(reason), scene, spot);
+        }
+
+        /// <summary>A shared world with a live connection (hosting, or a client talking to its host).</summary>
+        private bool InLiveWorld() => SafeShared() && (_net.Mode == NetMode.Host || _net.IsConnected);
+
+        /// <summary>Nobody standing: with friends in the world they get half a minute to give up and get back on their feet; alone it is short.</summary>
+        private float GameOverSeconds()
+        {
+            int others = 0;
+            try { foreach (var r in _players.Snapshot()) if (r.HasState && r.Age <= 60f) others++; } catch { }
+            return others > 0 ? 30f : 5f;
+        }
+
+        /// <summary>
+        /// Nobody is left standing: the game ends the way it ends in single player. The guard is lifted, the game's own
+        /// death runs (death screen, and its save is deleted: the host's world, a client's copy of it), and the others hear of it.
+        /// </summary>
+        private void RealDeath(string reason, float now)
+        {
+            var t = GameManager.GetPlayerTransform(); var pm = GameManager.GetPlayerManagerComponent(); var cond = GameManager.GetConditionComponent();
+            string scene = CoopMod.CurrentScene() ?? _downScene;
+            Vector3 pos = t != null ? t.position : _downPos;
+            _realDeath = true; _realDeathAt = now; _realDeathPushed = false; RealDeaths++;
+            _down = false; DownFast = false; _pendingCause = null; _giveUpSince = -1f; _nobodySince = -1f;
+            GuardCached = false; _guarded = false;
+            Release(pm, cond);
+            try { DriveSwitches(); } catch (Exception e) { Oops("switches", e); }
+            CoopMod.Log($"Game over ({reason}) in {scene} at {P(pos)}: nobody was left standing, the game's own death runs");
+            SendNote(4, ReasonCode(reason), scene, pos);
+            try { if (cond != null) cond.m_CurrentHP = 0f; } catch (Exception e) { Oops("real death condition", e); }
+            try { HUDMessage.AddMessage(L.T("Ayakta kimse kalmadı. Oyun bitti.", "Nobody was left standing. The game is over."), 6f, true, true); } catch { }
+        }
+
+        /// <summary>The game's death should follow on its own (condition at zero); if it has not after two seconds, call it.</summary>
+        private void TickRealDeath(bool inGame, float now)
+        {
+            if (!_realDeath) return;
+            if (!inGame)
+            {
+                if (now - _realDeathAt > 3f) { _realDeath = false; CoopMod.Log("Game over: back at the menu, the co-op guard works again"); }
+                return;
+            }
+            if (_realDeathPushed || now - _realDeathAt < 2f) return;
+            _realDeathPushed = true;
+            bool dead = false; try { dead = GameManager.GetPlayerManagerComponent().PlayerIsDead(); } catch { }
+            if (dead) return;
+            try
+            {
+                var c = GameManager.GetConditionComponent();
+                c.m_NeverDie = false; c.m_Invulnerable = false; c.m_CurrentHP = 0f;
+                c.PlayerDeath(null);
+                CoopMod.Log("Game over: the game's death was called directly");
+            }
+            catch (Exception e) { CoopMod.Log("Game over: the game's death could not be called: " + e.Message); }
         }
 
         private static byte ReasonCode(string r) => r == "bled_out" ? (byte)1 : r == "gave_up" ? (byte)2 : r == "disconnected" ? (byte)4 : (byte)3;
@@ -1201,6 +1279,18 @@ namespace TLDCoop
                     CoopMod.Log($"Player {id} was lifted by player {other} in {scene} at {P(pos)}: up with {RevivePercent:0} % condition");
                     if (other == _net.LocalId) LastHelperResult = $"player {id} got up";
                     if (WorldSync.InGame()) Line(other == _net.LocalId ? L.T($"{Name(id)} ayağa kalktı: onu sen kaldırdın", $"{Name(id)} is up again: you revived them") : L.T($"{Name(id)} ayağa kalktı", $"{Name(id)} is up again"), 5f);
+                }
+                else if (what == 4)
+                {
+                    LastNote = $"player {id} died for good: nobody was left standing";
+                    CoopMod.Log($"Player {id} died for good in {scene} at {P(pos)}: nobody was left standing");
+                    if (id == Protocol.HostId && _net.Mode == NetMode.Client)
+                    {
+                        // the host's world is over; whoever is still on the ground here goes with it
+                        if (_down) { RealDeath("host_game_over", Time.realtimeSinceStartup); return; }
+                        CoopMod.Popup(L.T("ORTAK DÜNYA", "SHARED WORLD"), L.T("Sunucu öldü: ortak dünyada ayakta kimse kalmadı, oyun bitti.", "The host died: nobody was left standing in the shared world, the game is over."));
+                    }
+                    else if (WorldSync.InGame()) Line(L.T($"{Name(id)} öldü.", $"{Name(id)} died."), 6f);
                 }
                 else if (what == 3)
                 {

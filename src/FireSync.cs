@@ -18,7 +18,8 @@ namespace TLDCoop
 
         private readonly Dictionary<IntPtr, FireSig> _fireSig = new();
         private Fire[] _fires;
-        private float _nextFireList, _nextFirePoll;
+        private float _nextFireList, _nextFirePoll, _nextFireBeat;
+        private int _fireBeats;
         private static bool _loggedFireError;
 
         private void ResetFires() { _fireSig.Clear(); _fires = null; _nextFireList = 0f; }
@@ -63,9 +64,24 @@ namespace TLDCoop
                 catch { }
                 SendFire(f, lit ? "lit" : died ? "out" : "fuel");
             }
+            // the host's fires are the real ones: wind and shelter make a fire burn at its own pace in each game,
+            // so every 15 s the host sends each burning fire again and the clients' copies are set to it
+            if (_net.Mode == NetMode.Host && _net.Remotes.Count > 0 && now >= _nextFireBeat)
+            {
+                _nextFireBeat = now + 15f;
+                int n = 0;
+                foreach (var f in _fires)
+                {
+                    if (f == null) continue;
+                    bool burning = false; try { burning = f.IsBurning(); } catch { }
+                    if (!burning) continue;
+                    SendFire(f, "beat", quiet: true); n++;
+                }
+                if (n > 0 && _fireBeats++ == 0) CoopMod.Log($"Fires: the host's {n} burning fire(s) are sent every 15 s, the clients' copies follow");
+            }
         }
 
-        private void SendFire(Fire f, string why)
+        private void SendFire(Fire f, string why, bool quiet = false)
         {
             if (Applying || !Active) return;
             string text;
@@ -81,7 +97,7 @@ namespace TLDCoop
             string address = "";
             try { address = f.PrefabAddress ?? ""; } catch { }
             float remain = 0f; try { remain = f.GetRemainingLifeTimeHours(); } catch { }
-            CoopMod.Log($"Fire {why}: {PrefabName(go)} ({remain:0.0} h left)");
+            if (!quiet) CoopMod.Log($"Fire {why}: {PrefabName(go)} ({remain:0.0} h left)");
             var w = _net.Begin(Msg.FireState);
             w.Put(CoopMod.CurrentScene());
             w.Put(guid ?? "");
@@ -132,10 +148,13 @@ namespace TLDCoop
                     }
                 }
                 if (f == null) { CoopMod.Log($"Fire not found at {Pos} ({Address})"); return; }
+                float before = 0f; try { before = f.GetRemainingLifeTimeHours(); } catch { }
                 f.Deserialize(Text);
                 bool burning = false; try { burning = f.IsBurning(); } catch { }
                 float remain = 0f; try { remain = f.GetRemainingLifeTimeHours(); } catch { }
-                CoopMod.Log($"Got fire: {PrefabName(f.gameObject)}{(made ? " (new campfire)" : "")} burning {burning}, {remain:0.0} h left");
+                // the host's every-15-s fire beat: only worth a line when the two had drifted apart
+                if (!made && Mathf.Abs(remain - before) < 0.05f && burning) { Instance.RememberFire(f); return; }
+                CoopMod.Log($"Got fire: {PrefabName(f.gameObject)}{(made ? " (new campfire)" : "")} burning {burning}, {remain:0.0} h left" + (made ? "" : $" (was {before:0.0} h here)"));
                 Instance.RememberFire(f);
             }
         }

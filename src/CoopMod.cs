@@ -12,7 +12,7 @@ namespace TLDCoop
 {
     public sealed class CoopMod : MelonMod
     {
-        public const string ModVersion = "0.14.0";
+        public const string ModVersion = "0.14.2";
         internal static bool AllowVersionMismatch => Instance?._allowMismatch?.Value ?? false;
 
         internal static CoopMod Instance;
@@ -111,6 +111,9 @@ namespace TLDCoop
             Downed = new DownedSync(Net, Players, () => Items.SharedWorld, () => _downed.Value, () => _downedMinutes.Value, _sleepPlace.Value,
                 place => { _sleepPlace.Value = place; _cat.SaveToFile(false); });
             try { Downed.ApplyPatches(HarmonyInstance); } catch (Exception e) { Log("Downed and revive hooks: " + e.Message); }
+            try { World.ApplyPatches(HarmonyInstance); } catch (Exception e) { Log("Weather hooks: " + e.Message); }
+            try { MapShare.ApplyPatches(HarmonyInstance); } catch (Exception e) { Log("Map reveal hooks: " + e.Message); }
+            try { WorkTime.ApplyPatches(HarmonyInstance); } catch (Exception e) { Log("Job time hooks: " + e.Message); }
             _figure = _cat.CreateEntry("Figur", true, "Your friend is drawn as a person (walking, crouching, lying, holding a light); off = the old capsule / Arkadas insan figuru olarak cizilir (yuruyen, comelen, yatan, isik tutan bir insan); kapatilirsa eski kapsul cizilir");
             RemotePlayers.FigureWanted = () => _figure.Value;
             _look = _cat.CreateEntry("KiyafetGorunumu", true, "Your friend's figure shows what they really wear (hat, scarf, gloves, colours); off = everyone gets the same clothes / Arkadasin figuru onun gercekten giydiklerini gosterir (sapka, atki ve eldiven var mi, parcalarin renkleri); kapatilirsa herkes sabit kiyafetle cizilir");
@@ -543,6 +546,17 @@ namespace TLDCoop
         {
             try { return GameManager.m_GameVersionString ?? "?"; } catch { return "?"; }
         }
+
+        /// <summary>Only the version number ("2.60" of "2.60 189457 S"): Steam and Epic builds of one version
+        /// differ in the store letter at the end, and that must not keep friends on different stores apart.</summary>
+        internal static string GameVersionNumber(string v)
+        {
+            if (string.IsNullOrWhiteSpace(v)) return "?";
+            var t = v.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            return t.Length > 0 ? t[0] : "?";
+        }
+
+        internal static bool SameGameVersion(string other) => GameVersionNumber(other) == GameVersionNumber(GameVersion());
 
         // own log per game process: two copies of the game on one PC share MelonLoader's log files
         internal static readonly string OwnLog = System.IO.Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory,

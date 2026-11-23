@@ -36,6 +36,7 @@
     <Reference Include="Il2CppTLD.SaveState"><HintPath>$(Refs)/Il2CppTLD.SaveState.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Il2CppTLD.Addressables"><HintPath>$(Refs)/Il2CppTLD.Addressables.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="Unity.Addressables"><HintPath>$(Refs)/Unity.Addressables.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.ResourceManager"><HintPath>$(Refs)/Unity.ResourceManager.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(Refs)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(Refs)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.IMGUIModule"><HintPath>$(Refs)/UnityEngine.IMGUIModule.dll</HintPath><Private>false</Private></Reference>

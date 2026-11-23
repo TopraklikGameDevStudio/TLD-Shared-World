@@ -32,6 +32,101 @@ namespace TLDCoop
             _net.OnRemoteJoined += (id, name) => { _sendLogTo = id; _sendLogAt = Time.realtimeSinceStartup + 3f; };
         }
 
+        // ---- postcards (the game calls them polaroids) and region maps: what one player reveals on the map, all get ----
+        private readonly List<(byte Kind, string Key, bool Flag)> _revealLog = new();
+        private string _revealSave;
+        private readonly List<(byte Kind, string Key, bool Flag)> _revealPending = new();
+        internal int RevealsSent, RevealsApplied;
+        private static string RevealPath(string save) => System.IO.Path.Combine(MelonLoader.Utils.MelonEnvironment.UserDataDirectory, "TLDCoop-map-" + save + "-reveal.txt");
+
+        internal static void ApplyPatches(HarmonyLib.Harmony h)
+        {
+            int ok = 0;
+            try
+            {
+                var m = AccessTools.Method(typeof(Panel_Map), nameof(Panel_Map.RevealOnPolaroidDiscovery), new[] { typeof(string), typeof(bool) });
+                if (m != null) { h.Patch(m, postfix: new HarmonyMethod(typeof(MapRevealPatches), nameof(MapRevealPatches.PolaroidPostfix))); ok++; }
+            }
+            catch (Exception e) { CoopMod.Log("Shared map: postcard hook failed (" + e.Message + ")"); }
+            try
+            {
+                var m = AccessTools.Method(typeof(Panel_Map), nameof(Panel_Map.UnlockRegionMap), new[] { typeof(string) });
+                if (m != null) { h.Patch(m, postfix: new HarmonyMethod(typeof(MapRevealPatches), nameof(MapRevealPatches.RegionPostfix))); ok++; }
+            }
+            catch (Exception e) { CoopMod.Log("Shared map: region map hook failed (" + e.Message + ")"); }
+            CoopMod.Log($"Shared map: {ok} of 2 reveal hooks in place (postcards, region maps)");
+        }
+
+        private void LoadReveals()
+        {
+            string save = SaveName();
+            if (save == _revealSave) return;
+            _revealSave = save; _revealLog.Clear();
+            if (string.IsNullOrEmpty(save)) return;
+            try
+            {
+                var path = RevealPath(save);
+                if (!System.IO.File.Exists(path)) return;
+                foreach (var line in System.IO.File.ReadAllLines(path))
+                {
+                    var p = line.Split('\t');
+                    if (p.Length < 3 || !byte.TryParse(p[0], out var k)) continue;
+                    _revealLog.Add((k, p[1], p[2] == "1"));
+                }
+            }
+            catch { }
+        }
+
+        private bool RememberReveal(byte kind, string key, bool flag)
+        {
+            LoadReveals();
+            foreach (var e in _revealLog) if (e.Kind == kind && e.Key == key) return false;
+            _revealLog.Add((kind, key, flag));
+            if (!string.IsNullOrEmpty(_revealSave))
+                try { System.IO.File.AppendAllText(RevealPath(_revealSave), $"{kind}\t{key}\t{(flag ? 1 : 0)}\n"); } catch { }
+            return true;
+        }
+
+        /// <summary>This player found a postcard or a region map (the game's own call, seen by a hook).</summary>
+        internal void LocalReveal(byte kind, string key, bool flag)
+        {
+            if (Applying || string.IsNullOrEmpty(key)) return;
+            bool fresh = RememberReveal(kind, key, flag);
+            if (!fresh || !_net.IsConnected || !Shared()) return;
+            SendReveal(kind, key, flag, 255);
+            RevealsSent++;
+            CoopMod.Log($"Shared map: {(kind == 1 ? "postcard" : "region map")} '{key}' found here: sent to friends");
+        }
+
+        private void SendReveal(byte kind, string key, bool flag, byte to)
+        {
+            var w = _net.Begin(Msg.MapReveal); w.Put(_net.LocalId); w.Put(kind); w.Put(key); w.Put(flag);
+            if (to != 255 && _net.Mode == NetMode.Host) _net.SendTo(to, w, DeliveryMethod.ReliableOrdered);
+            else _net.Send(w, DeliveryMethod.ReliableOrdered);
+        }
+
+        private void ApplyReveals()
+        {
+            if (_revealPending.Count == 0 || !WorldSync.Settled()) return;
+            var map = InterfaceManager.GetPanel<Panel_Map>();
+            if (map == null) return;
+            foreach (var (kind, key, flag) in _revealPending)
+            {
+                Applying = true;
+                try
+                {
+                    if (kind == 1) map.RevealOnPolaroidDiscovery(key, flag);
+                    else if (kind == 2) map.UnlockRegionMap(key);
+                    RevealsApplied++;
+                    CoopMod.Log($"Shared map: friend's {(kind == 1 ? "postcard" : "region map")} '{key}' revealed here too");
+                }
+                catch (Exception e) { CoopMod.Log($"Shared map: could not reveal '{key}' ({e.Message})"); }
+                finally { Applying = false; }
+                RememberReveal(kind, key, flag);
+            }
+            _revealPending.Clear();
+        }
+
         // ---- the log of mapped spots, per save: what has been mapped here (by this player or shared by a friend) ----
         private string _logSave; private readonly List<(string Scene, Vector3 Pos)> _log = new();
         private byte _sendLogTo = 255; private float _sendLogAt;
@@ -88,6 +183,8 @@ namespace TLDCoop
                 if (_net.Mode == NetMode.Host) _net.SendTo(to, w, DeliveryMethod.ReliableOrdered); else _net.Send(w, DeliveryMethod.ReliableOrdered);
                 n++;
             }
+            LoadReveals();
+            foreach (var e in _revealLog) { SendReveal(e.Kind, e.Key, e.Flag, to); n++; }
             if (n > 0) CoopMod.Log($"Shared map: sent {n} mapped spot(s) to player {to}");
         }
 
@@ -110,6 +207,26 @@ namespace TLDCoop
 
         private void OnMessage(byte from, NetDataReader r, Msg msg)
         {
+            if (msg == Msg.MapReveal)
+            {
+                try
+                {
+                    byte id = r.GetByte(), kind = r.GetByte(); string key = r.GetString(); bool flag = r.GetBool();
+                    if (_net.Mode == NetMode.Host)
+                    {
+                        id = from;
+                        var w = _net.Begin(Msg.MapReveal); w.Put(id); w.Put(kind); w.Put(key); w.Put(flag);
+                        _net.Send(w, DeliveryMethod.ReliableOrdered, from);
+                    }
+                    if (id == _net.LocalId) return;
+                    LoadReveals();
+                    foreach (var e in _revealLog) if (e.Kind == kind && e.Key == key) return;
+                    _revealPending.Add((kind, key, flag));
+                    if (Time.realtimeSinceStartup - _lastHud > 10f) { _lastHud = Time.realtimeSinceStartup; try { HUDMessage.AddMessage(L.T("Arkadaşın haritada yeni bir yer açtı; senin haritan da güncellendi", "Your friend revealed a new place on the map; your map was updated too"), 3f, false, true); } catch { } }
+                }
+                catch (Exception e) { CoopMod.Log("Shared map reveal message: " + e.Message); }
+                return;
+            }
             if (msg != Msg.MapSurvey) return;
             try
             {
@@ -140,6 +257,7 @@ namespace TLDCoop
                 byte to = _sendLogTo; _sendLogTo = 255;
                 try { SendLog(to); } catch (Exception e) { CoopMod.Log("Shared map: sending the log: " + e.Message); }
             }
+            try { ApplyReveals(); } catch (Exception e) { CoopMod.Log("Shared map: reveals: " + e.Message); }
             if (_pending.Count == 0 || !WorldSync.Settled()) return;
             string scene = CoopMod.CurrentScene() ?? "";
             if (!_pending.TryGetValue(scene, out var list)) return;
@@ -179,7 +297,15 @@ namespace TLDCoop
             sb.Append("map_pending: ").Append(pend).Append('\n');
             sb.Append("map_last: ").Append(Last).Append('\n');
             sb.Append("map_log: ").Append(_logSave ?? "-").Append(" spots=").Append(_log.Count).Append('\n');
+            sb.Append("map_reveals: sent=").Append(RevealsSent).Append(" applied=").Append(RevealsApplied).Append(" pending=").Append(_revealPending.Count).Append(" known=").Append(_revealLog.Count).Append('\n');
         }
+    }
+
+    /// <summary>Applied by hand (MapShare.ApplyPatches).</summary>
+    internal static class MapRevealPatches
+    {
+        public static void PolaroidPostfix(string __0, bool __1) { try { MapShare.Instance?.LocalReveal(1, __0, __1); } catch { } }
+        public static void RegionPostfix(string __0) { try { MapShare.Instance?.LocalReveal(2, __0, false); } catch { } }
     }
 
     [HarmonyPatch(typeof(CharcoalItem), nameof(CharcoalItem.DetailSurveyComplete))]

@@ -1442,13 +1442,13 @@ namespace TLDCoop
                 all.Sort((x, y) => Vector3.Distance(x.transform.position, pos).CompareTo(Vector3.Distance(y.transform.position, pos)));
                 for (int k = 0; k < all.Count && k < 8; k++)
                 {
-                    var made = TrySpawnFrom(all[k], info, pos, yaw, wm, 2, false);
+                    var made = TrySpawn(all[k], info, pos, yaw, wm, 2, false);
                     if (made != null) return made;
                 }
                 if (_failed.Add(info.Id)) CoopMod.Log($"No spawn region here can make a {info.Prefab}");
                 return null;
             }
-            var ai0 = TrySpawnFrom(region, info, pos, yaw, wm, 4, true);
+            var ai0 = TrySpawn(region, info, pos, yaw, wm, 4, true);
             if (ai0 == null && _failed.Add(info.Id)) CoopMod.Log($"Couldn't make a {info.Prefab} here");
             return ai0;
         }
@@ -1456,6 +1456,7 @@ namespace TLDCoop
         // which kind each animal asset of the game turned out to be (learned the first time it is made)
         private readonly Dictionary<string, string> _assetKind = new();
 
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private BaseAi MakeFrom(SpawnRegion region, AssetReferenceBaseAi asset, Info info, Vector3 pos, float yaw, WildlifeMode wm, out string got)
         {
             got = null;
@@ -1479,6 +1480,29 @@ namespace TLDCoop
             return null;
         }
 
+        /// <summary>Make an animal of the host's kind from this region, in the way this game build does it.</summary>
+        private BaseAi TrySpawn(SpawnRegion region, Info info, Vector3 pos, float yaw, WildlifeMode wm, int tries, bool log)
+        {
+            if (Compat.NewAnimalSpawn) return TrySpawnFrom(region, info, pos, yaw, wm, tries, log);
+            BaseAi made = null;
+            Spawning = true;
+            try
+            {
+                made = Compat.SpawnFromTable255(region, wm, pos, yaw, ai =>
+                {
+                    var got = Kind(ai.gameObject);
+                    return got == info.Prefab;
+                });
+            }
+            catch (Exception e) { CoopMod.Log("Animal spawn (2.55): " + e.Message); }
+            finally { Spawning = false; }
+            if (made != null && !string.IsNullOrEmpty(info.Guid)) { try { ObjectGuid.MaybeAttachObjectGuidAddOrReplace(made.gameObject, info.Guid); } catch { } }
+            if (made == null && log) CoopMod.Log($"Region could not make a {info.Prefab} (2.55)");
+            return made;
+        }
+
+        // 2.60 and later only: names AssetReferenceBaseAi, which 2.55 does not have (never called there)
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
         private BaseAi TrySpawnFrom(SpawnRegion region, Info info, Vector3 pos, float yaw, WildlifeMode wm, int tries, bool log)
         {
             // a region can make several kinds (doe or stag): go through its list instead of rolling the dice

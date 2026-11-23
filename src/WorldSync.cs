@@ -20,11 +20,39 @@ namespace TLDCoop
         private float _lastWeatherApply;
         private string _lastWeatherText = "";
         private float _lastHostHours = -1f; private int _backwards;
+        private float _nextWind; private string _lastSentWind = ""; private float _lastFullWindSend;
+        private string _lastWindText = ""; private int _windApplied;
+        private float _lastSentWeatherAt;
+
+        /// <summary>Client in the host's world: its own weather and wind must not roll their own dice (see the patches below).</summary>
+        internal static bool HostDrivesWeather;
+        internal static WorldSync Instance;
+
+        internal void ApplyPatches(HarmonyLib.Harmony h)
+        {
+            int ok = 0;
+            void Hook(Type t, string name, Type[] args)
+            {
+                try
+                {
+                    var m = HarmonyLib.AccessTools.Method(t, name, args);
+                    if (m == null) throw new MissingMethodException(name);
+                    h.Patch(m, prefix: new HarmonyLib.HarmonyMethod(typeof(WeatherPatches), nameof(WeatherPatches.SkipOnClient)));
+                    ok++;
+                }
+                catch (Exception e) { CoopMod.Log($"Weather: could not hook {t.Name}.{name} ({e.Message})"); }
+            }
+            Hook(typeof(WeatherTransition), nameof(WeatherTransition.ChooseNextWeatherSet), new[] { typeof(WeatherTransitionWeights), typeof(bool), typeof(bool) });
+            Hook(typeof(Wind), nameof(Wind.MaybeChangePhase), Type.EmptyTypes);
+            Hook(typeof(Wind), nameof(Wind.StartRandomPhase), new[] { typeof(bool) });
+            CoopMod.Log($"Weather: {ok} of 3 hooks in place (a client's weather and wind follow the host)");
+        }
 
         public WorldSync(Network net)
         {
-            _net = net;
+            _net = net; Instance = this;
             _net.OnMessage += OnMessage;
+            _net.OnStopped += () => { HostDrivesWeather = false; _lastWindText = ""; _lastWeatherText = ""; };
         }
 
         public static bool InGame()
@@ -61,6 +89,10 @@ namespace TLDCoop
 
         public void Update()
         {
+            // a client follows the host's weather only while it is connected and inside the shared world
+            bool follow = false;
+            try { follow = _net.Mode == NetMode.Client && _net.IsConnected && CoopMod.Instance.Items.SharedWorld && InGame(); } catch { }
+            HostDrivesWeather = follow;
             if (_net.Mode != NetMode.Host || _net.Remotes.Count == 0 || !InGame()) return;
             float now = Time.realtimeSinceStartup;
 
@@ -89,7 +121,7 @@ namespace TLDCoop
                 var uni = GameManager.GetUniStorm();
                 var stage = uni.GetWeatherStage();
                 bool changed = stage != _lastSentStage;
-                if (changed || now - _lastFullWeatherSend > 30f)
+                if (changed || now - _lastFullWeatherSend > 10f)
                 {
                     var wt = GameManager.GetWeatherTransitionComponent();
                     string text = wt != null ? wt.Serialize() : "";
@@ -101,12 +133,26 @@ namespace TLDCoop
                     _lastFullWeatherSend = now;
                 }
             }
+
+            if (now >= _nextWind)
+            {
+                _nextWind = now + 2f;
+                var wind = GameManager.GetWindComponent();
+                string text = wind != null ? wind.Serialize() : null;
+                if (!string.IsNullOrEmpty(text) && (text != _lastSentWind || now - _lastFullWindSend > 10f))
+                {
+                    var w = _net.Begin(Msg.Wind);
+                    w.Put(text);
+                    _net.Send(w, DeliveryMethod.ReliableOrdered);
+                    _lastSentWind = text; _lastFullWindSend = now;
+                }
+            }
         }
 
         /// <summary>A new client should get the full picture right away.</summary>
         public void ForceSendSoon()
         {
-            _nextTime = 0; _nextWeather = 0; _lastSentStage = WeatherStage.Undefined;
+            _nextTime = 0; _nextWeather = 0; _lastSentStage = WeatherStage.Undefined; _nextWind = 0; _lastSentWind = "";
         }
 
         private void OnMessage(byte from, NetDataReader r, Msg msg)
@@ -114,6 +160,21 @@ namespace TLDCoop
             if (_net.Mode != NetMode.Client) return;
             if (msg == Msg.WorldTime) ApplyTime(r.GetFloat(), r.GetFloat(), r.GetInt());
             else if (msg == Msg.Weather) ApplyWeather((WeatherStage)r.GetInt(), r.GetString());
+            else if (msg == Msg.Wind) ApplyWind(r.GetString());
+        }
+
+        private void ApplyWind(string text)
+        {
+            if (!InGame() || Loading() || string.IsNullOrEmpty(text) || text == _lastWindText) return;
+            try
+            {
+                var wind = GameManager.GetWindComponent();
+                if (wind == null) return;
+                wind.Deserialize(text);
+                _lastWindText = text;
+                if (_windApplied++ == 0) CoopMod.Log($"Wind follows the host now ({wind.GetStrength()}, {wind.GetSpeedMPH():0} mph)");
+            }
+            catch (Exception e) { CoopMod.Log("Wind sync failed: " + e.Message); }
         }
 
         private void ApplyTime(float hostHours, float hostNorm, int hostDay)
@@ -152,7 +213,7 @@ namespace TLDCoop
                 var uni = GameManager.GetUniStorm();
                 var wt = GameManager.GetWeatherTransitionComponent();
                 bool stageDiffers = uni.GetWeatherStage() != stage;
-                bool stale = Time.realtimeSinceStartup - _lastWeatherApply > 60f;
+                bool stale = Time.realtimeSinceStartup - _lastWeatherApply > 20f;
                 if (wt != null && !string.IsNullOrEmpty(text) && (stageDiffers || stage != _hostStage || stale) && text != _lastWeatherText)
                 {
                     wt.Deserialize(text);
@@ -166,5 +227,11 @@ namespace TLDCoop
             }
             catch (Exception e) { CoopMod.Log("Weather sync failed: " + e.Message); }
         }
+    }
+
+    /// <summary>Applied by hand (WorldSync.ApplyPatches). A client in the host's world does not choose its own next weather or wind.</summary>
+    internal static class WeatherPatches
+    {
+        public static bool SkipOnClient() { try { return !WorldSync.HostDrivesWeather; } catch { return true; } }
     }
 }

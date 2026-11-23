@@ -61,6 +61,68 @@ namespace TLDCoop
             Instance = this; _net = net; _on = on; _shared = shared;
         }
 
+        // ---------------- the job itself takes its time ----------------
+        // Most jobs run a progress bar for a few real seconds while the game's clock races through their minutes.
+        // In a shared world the bar is stretched so that the clock runs at its normal speed through the job: the job
+        // takes as long as its minutes really last, nobody's clock gets ahead, nothing to wait out afterwards.
+        // Jobs whose bar cannot be stretched here still use the wait above.
+        internal int Stretched; internal float LastStretchFrom, LastStretchTo;
+        internal static bool InBreakDown;
+
+        internal static void ApplyPatches(HarmonyLib.Harmony h)
+        {
+            int ok = 0, all = 0;
+            void P(Type t, string name, Type[] args, string prefix, string postfix = null)
+            {
+                all++;
+                try
+                {
+                    var m = HarmonyLib.AccessTools.Method(t, name, args);
+                    if (m == null) throw new MissingMethodException(name);
+                    h.Patch(m, prefix: prefix != null ? new HarmonyLib.HarmonyMethod(typeof(WorkTimePatches), prefix) : null,
+                               postfix: postfix != null ? new HarmonyLib.HarmonyMethod(typeof(WorkTimePatches), postfix) : null);
+                    ok++;
+                }
+                catch (Exception e) { CoopMod.Log($"Job time: could not hook {t.Name}.{name} ({e.Message})"); }
+            }
+            var gp = typeof(Panel_GenericProgressBar);
+            foreach (var m in gp.GetMethods(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+            {
+                if (m.Name != nameof(Panel_GenericProgressBar.Launch)) continue;
+                var ps = m.GetParameters();
+                if (ps.Length < 3 || ps[1].ParameterType != typeof(float) || ps[2].ParameterType != typeof(float)) continue;
+                all++;
+                try { h.Patch(m, prefix: new HarmonyLib.HarmonyMethod(typeof(WorkTimePatches), nameof(WorkTimePatches.LaunchPrefix))); ok++; }
+                catch (Exception e) { CoopMod.Log($"Job time: could not hook a progress bar ({e.Message})"); }
+            }
+            P(typeof(Panel_BreakDown), nameof(Panel_BreakDown.OnBreakDown), Type.EmptyTypes, nameof(WorkTimePatches.BreakDownPrefix), nameof(WorkTimePatches.BreakDownPostfix));
+            P(typeof(TimeOfDay), nameof(TimeOfDay.Accelerate), new[] { typeof(float), typeof(float), typeof(bool) }, nameof(WorkTimePatches.AcceleratePrefix));
+            CoopMod.Log($"Job time: {ok} of {all} hooks in place (jobs take their real time in a shared world)");
+        }
+
+        /// <summary>Real seconds a job of these game minutes lasts at the clock's normal speed; 0 = leave it as the game made it.</summary>
+        internal float StretchSeconds(float gameMinutes, float realSeconds)
+        {
+            try
+            {
+                if (!Active() || SleepSync.LocalSleep() != 0 || gameMinutes <= 0f) return 0f;
+                float r0 = RatePerSecond > 0f ? RatePerSecond : 0f;
+                if (r0 <= 0f) { try { float day = GameManager.GetTimeOfDayComponent().GetDayLengthSeconds(); if (day > 60f) r0 = 24f / day; } catch { } }
+                if (r0 <= 0f) return 0f;
+                float want = gameMinutes / 60f / r0;
+                if (want <= realSeconds * 1.05f || want > 7200f) return 0f;
+                return want;
+            }
+            catch { return 0f; }
+        }
+
+        internal void Note(string what, float from, float to)
+        {
+            Stretched++; LastStretchFrom = from; LastStretchTo = to;
+            Last = $"{what}: {from:0.0} s stretched to {to:0} s (the job's real time)";
+            CoopMod.Log("Job time: " + Last);
+        }
+
         private bool Active()
         {
             try
@@ -205,7 +267,7 @@ namespace TLDCoop
                     {
                         _nextHud = now + 6f;
                         int s = Mathf.CeilToInt(LeftSeconds);
-                        Hud(L.T($"Hâlâ uğraşıyorsun: dünyanın zamanı yetişiyor ({s / 60}:{s % 60:00}). F8: beklemeden devam et.", $"Still at it: the world's clock is catching up ({s / 60}:{s % 60:00}). F8: carry on without waiting."));
+                        Hud(L.T($"İş sürüyor ({s / 60}:{s % 60:00} kaldı). F8: beklemeden bitir.", $"Still working ({s / 60}:{s % 60:00} left). F8: finish without waiting."));
                     }
                 }
             }
@@ -282,6 +344,42 @@ namespace TLDCoop
             sb.Append("work_counts: ").Append($"jobs={Jobs} waited={Waited} aborted={Aborted} last_job_min={LastAheadMin:0}").Append('\n');
             sb.Append("work_last: ").Append(Last).Append('\n');
             foreach (var t in _trace) sb.Append("work_trace: ").Append(t).Append('\n');
+        }
+    }
+
+    /// <summary>Applied by hand (WorkTime.ApplyPatches).</summary>
+    internal static class WorkTimePatches
+    {
+        public static void LaunchPrefix(ref float __1, float __2)
+        {
+            try
+            {
+                var w = WorkTime.Instance; if (w == null) return;
+                float s = w.StretchSeconds(__2, __1);
+                if (s <= 0f) return;
+                w.Note("progress bar", __1, s);
+                __1 = s;
+            }
+            catch { }
+        }
+
+        public static void BreakDownPrefix() { WorkTime.InBreakDown = true; }
+        public static void BreakDownPostfix() { WorkTime.InBreakDown = false; }
+
+        /// <summary>Breaking things down sets its bar's length itself and then speeds the clock up: stretch both together.</summary>
+        public static void AcceleratePrefix(ref float __0, float __1)
+        {
+            if (!WorkTime.InBreakDown) return;
+            try
+            {
+                var w = WorkTime.Instance; if (w == null) return;
+                float s = w.StretchSeconds(__1 * 60f, __0);
+                if (s <= 0f) return;
+                try { var p = InterfaceManager.GetPanel<Panel_BreakDown>(); if (p != null) p.m_SecondsToBreakDown = s; } catch { }
+                w.Note("breaking down", __0, s);
+                __0 = s;
+            }
+            catch { }
         }
     }
 }

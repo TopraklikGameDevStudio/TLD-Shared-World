@@ -47,6 +47,8 @@ namespace TLDCoop
         Voice = 87,                // talker -> everyone (host relays, unreliable sequenced): id, scene, seq, mu-law 16 kHz frame            // mapper -> everyone (host relays): id, scene, pos (finished a charcoal survey there)            // shooter -> target (a client's goes through the host): target id, shooter id, scene, damage %, weapon, head
         HandAnswer = 84,           // receiver -> giver (a client's goes through the host): giver id, receiver id, hand-over number, answer (1 taken, else why not)
         Look = 88,                 // player -> everyone (host relays under the sender's real id, and tells a newcomer every look it knows): id, flags (1 hat, 2 scarf, 4 gloves), 6 x RGB (hat, scarf, torso, hands, legs, boots)
+        Wind = 89,                 // host -> clients: serialized wind (the client's own wind does not change phase on its own)
+        MapReveal = 90,            // revealer -> everyone (host relays): id, kind (1 postcard/polaroid, 2 region map), key, flag
     }
 
     internal static class Protocol

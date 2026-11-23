@@ -664,7 +664,7 @@ namespace TLDCoop
                     c.RemoveGear(gi, false);
                     GearManager.DestroyGearObject(gi);
                 }
-                try { c.m_GearToInstantiate?.Clear(); } catch { }
+                Compat.ClearGearToInstantiate(c);
                 c.Deserialize(Text, new Il2CppSystem.Collections.Generic.List<GearItem>());
                 Instance.ResnapIfWatched(c);
             }
