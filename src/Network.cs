@@ -249,7 +249,7 @@ namespace TLDCoop
             if (msg == Msg.Hello)
             {
                 var modV = r.GetString(); var gameV = r.GetString(); var name = r.GetString(32);
-                if (modV != CoopMod.ModVersion || (gameV != CoopMod.GameVersion() && !CoopMod.AllowVersionMismatch))
+                if (modV != CoopMod.ModVersion || (!CoopMod.SameGameVersion(gameV) && !CoopMod.AllowVersionMismatch))
                 {
                     var rej = Begin(Msg.Reject);
                     rej.Put(L.Both($"Sürüm uyuşmuyor. Sunucu: mod {CoopMod.ModVersion}, oyun {CoopMod.GameVersion()} / Sen: mod {modV}, oyun {gameV}", $"Versions do not match. Server: mod {CoopMod.ModVersion}, game {CoopMod.GameVersion()} / You: mod {modV}, game {gameV}"));
@@ -258,7 +258,8 @@ namespace TLDCoop
                     peer.Disconnect();
                     return;
                 }
-                if (gameV != CoopMod.GameVersion()) CoopMod.Log($"WARNING: game version mismatch accepted (test mode): host {CoopMod.GameVersion()} / client {gameV}");
+                if (!CoopMod.SameGameVersion(gameV)) CoopMod.Log($"WARNING: game version mismatch accepted (test mode): host {CoopMod.GameVersion()} / client {gameV}");
+                else if (gameV != CoopMod.GameVersion()) CoopMod.Log($"Same game version from another store or build: host {CoopMod.GameVersion()} / client {gameV}");
                 info.Name = string.IsNullOrWhiteSpace(name) ? $"Player {id}" : name;
                 info.Welcomed = true;
                 var wel = Begin(Msg.Welcome); wel.Put(id); wel.Put(_localName);

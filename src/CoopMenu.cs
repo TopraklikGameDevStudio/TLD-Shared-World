@@ -117,7 +117,7 @@ namespace TLDCoop
                 {
                     Add(m, ref i, "leave", L.T("AYRIL", "LEAVE"), L.T("Arkadaşının dünyasından ayrıl.", "Leave your friend's world."), () => { mod.Disconnect(); Done("ayrılındı"); });
                 }
-                Add(m, ref i, "feedback", L.T("GERİ BİLDİRİM: ", "FEEDBACK: ") + L.FeedbackMail, L.T("Seçince e-posta adresi kopyalanır. Hata ve önerilerini bu adrese yaz.", "Choose to copy the e-mail address. Send bugs and ideas there."), () => Copy(L.FeedbackMail, false));
+                Add(m, ref i, "feedback", L.T("GERİ BİLDİRİM", "FEEDBACK"), L.T("Hata ve önerilerin için: " + L.FeedbackMail + " (seçince adres kopyalanır).", "Bugs and ideas: " + L.FeedbackMail + " (choose to copy the address)."), () => Copy(L.FeedbackMail, false));
                 Add(m, ref i, "support", L.T("MODU DESTEKLE", "SUPPORT THE MOD"), L.T("Modun sayfasını tarayıcıda açar: indirme, eksikler ve isteğe bağlı bağış. Mod her zaman ücretsiz.", "Opens the mod's page in your browser: downloads, known issues and optional donations. The mod is always free."), OpenPage);
                 Add(m, ref i, "back", L.T("GERİ", "BACK"), L.T("Önceki menüye dön.", "Back to the previous menu."), Back);
                 try { m.SetBackAction((Action)Back); } catch { }
