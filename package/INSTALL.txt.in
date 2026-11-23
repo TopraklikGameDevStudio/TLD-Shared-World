@@ -3,11 +3,31 @@ TLD SHARED WORLD (ORTAK DÜNYA) - INSTALLING (version {V}, beta)
 
 A co-op mod for The Long Dark: play with friends in one shared world.
 Not made or endorsed by Hinterland Studio. You need your own copy of the game.
-Everyone needs the SAME game version and the SAME mod version.
+Everyone needs the SAME game version number (e.g. 2.55) and the SAME mod version.
+Steam and Epic players can play together. Epic's latest version is 2.55;
+Steam players who want to play with an Epic friend roll back to 2.55
+(see "Rolling Steam back to 2.55" on the mod's page).
 Back up your saves before you try it:
   C:\Users\<you>\AppData\Local\Hinterland\TheLongDark
 Türkçe: KURULUM.txt
 
+
+EASY WAY: THE READY PACKAGE (recommended)
+-----------------------------------------
+"TLD-Shared-World-{V}-HAZIR-MelonLoader-dahil.zip" contains MelonLoader 0.7.3
+and the mod; no installer needed.
+ a) Close the game. Open the game folder (the one with tld.exe).
+    Steam: right-click the game > Manage > Browse local files
+    Epic : Library > the game's three dots > Manage > folder icon
+ b) Delete if present: the MelonLoader folder, winhttp.dll, version.dll
+ c) Copy what is INSIDE the zip into the game folder (winhttp.dll,
+    MelonLoader, Mods, UserLibs; next to tld.exe).
+ d) Start the game. A black window opens; the first start takes a few minutes.
+Then go to 3) PLAYING. If something goes wrong, see 5) COMMON PROBLEMS.
+
+
+INSTALLING BY HAND
+==================
 
 1) INSTALL MELONLOADER (once)
 -----------------------------
@@ -69,10 +89,37 @@ For example: DostAtesi = false (no friendly fire), IsSuresi = false (long
 jobs do not wait), SesliKonusma = false (no voice), Dil = tr (Turkish).
 
 
-5) KNOWN ISSUES
+5) COMMON PROBLEMS
+------------------
+ - The game starts without a black window: MelonLoader is missing or wrongly
+   installed (no net6 folder in MelonLoader, net35/net472 instead). Use the
+   READY PACKAGE. If it still happens, your antivirus may delete winhttp.dll:
+   Windows Security > Virus & threat protection > Protection history.
+ - Red text in the black window: "Application Control policy has blocked
+   this file (0x800711C7)": Windows 11's Smart App Control blocks the files
+   MelonLoader makes. Windows Security > App & browser control > Smart App
+   Control settings > Off. (It is a security setting and your call; Windows
+   may say it cannot be turned back on.)
+ - On Epic the game sits on its loading screen: Epic may have opened a
+   "cloud save conflict" window behind it. Bring the Epic Games Launcher to
+   the front; to keep your newer local save choose "UPLOAD TO CLOUD".
+ - "Error Generating Interop Assemblies" after rolling Steam back to 2.55:
+   delete <game folder>\MelonLoader\Dependencies\Il2CppAssemblyGenerator\Cpp2IL\cpp2il_out
+   and start the game again.
+ - "Versions do not match": the game version in the corner of both main
+   menus must be the same (Steam ends in S, Epic in E; that part is fine).
+
+
+6) KNOWN ISSUES
 ---------------
- - Most testing ran two copies of the game on one PC; a full session
-   between two homes over the internet has not been done yet.
+ - First sessions between two homes over the internet are done; it is
+   still a beta.
+ - Death: if no friend lifts you within 10 minutes you die; your gear stays
+   where you fell and you carry on without it. If nobody is left standing
+   (everyone is down), the game ends after 30 seconds and the shared world
+   save is deleted by the game's own rule.
+ - Some randomly placed ground items (sticks) can lie in different places
+   in the two games.
  - Tested with 2 players; 3-4 players not tried yet (the server takes 4).
  - No password: while your server is open, anyone with your address and the
    mod can join. Share it only with friends and stop the server afterwards.
@@ -82,7 +129,8 @@ jobs do not wait), SesliKonusma = false (no voice), Dil = tr (Turkish).
  - Survival mode only; no story mode; challenges and Tales not tested.
  - The world lives in the host's save; without the host there is no
    shared world to play in.
- - Long jobs wait in real time (a 2-hour job is about 10 minutes).
+ - Long jobs take real time (a 2-hour job is about 10 minutes): the
+   progress bar lasts that long.
  - Your friend is drawn with the mod's own model; clothes by kind and
    colour, simple animations.
  - Voice uses Windows' default microphone and speakers, no echo or noise
@@ -91,7 +139,7 @@ jobs do not wait), SesliKonusma = false (no voice), Dil = tr (Turkish).
  - No in-game settings screen; the mod is in English and Turkish only.
 
 
-6) FEEDBACK AND SUPPORT
+7) FEEDBACK AND SUPPORT
 -----------------------
 Bugs and ideas: destek@topraklikgamedevstudio.com
 (In the game, CO-OP > FEEDBACK copies the address.)

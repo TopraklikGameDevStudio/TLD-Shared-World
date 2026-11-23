@@ -3,11 +3,31 @@ TLD ORTAK DÜNYA (SHARED WORLD) - KURULUM (sürüm {V}, deneme sürümü)
 
 The Long Dark için co-op modu: arkadaşlarınla tek bir ortak dünyada oyna.
 Hinterland Studio ile bir bağlantısı yoktur. Oyunun yasal bir kopyası gerekir.
-Herkeste AYNI oyun sürümü ve AYNI mod sürümü kurulu olmalıdır.
+Herkeste AYNI oyun sürüm numarası (örneğin 2.55) ve AYNI mod sürümü kurulu olmalıdır.
+Steam ve Epic oyuncuları birlikte oynayabilir. Epic'te en son sürüm 2.55'tir;
+Steam'dekiler Epic'teki arkadaşıyla oynamak için 2.55'e düşmelidir
+(modun sayfasında "Steam'i 2.55'e düşürmek" bölümü).
 Denemeden önce kayıtlarını yedekle:
   C:\Users\<adın>\AppData\Local\Hinterland\TheLongDark
 English: see INSTALL.txt
 
+
+KOLAY YOL: HAZIR PAKET (önerilen)
+---------------------------------
+"TLD-Shared-World-{V}-HAZIR-MelonLoader-dahil.zip" içinde MelonLoader 0.7.3
+ve mod birlikte gelir; kurucuya gerek yoktur.
+ a) Oyunu kapat. Oyun klasörünü aç (içinde tld.exe olan klasör).
+    Steam: oyuna sağ tık > Yönet > Yerel dosyalara göz at
+    Epic : Kütüphane > oyunun üç noktası > Yönet > klasör simgesi
+ b) Varsa sil: MelonLoader klasörü, winhttp.dll, version.dll
+ c) Zip'in İÇİNDEKİLERİ oyun klasörüne kopyala (winhttp.dll, MelonLoader,
+    Mods, UserLibs; tld.exe ile aynı yerde).
+ d) Oyunu aç. Siyah pencere açılır; ilk açılış birkaç dakika sürer.
+Sonra 3) OYNAMAK'a geç. Takılırsan 5) SIK SORUNLAR'a bak.
+
+
+ELLE KURULUM
+============
 
 1) MELONLOADER'I KUR (bir kere)
 -------------------------------
@@ -67,10 +87,38 @@ Ayarlar: oyun klasöründe UserData\MelonPreferences.cfg, [TLDCoop] başlığı.
 beklemesin), SesliKonusma = false, Dil = en (mod İngilizce).
 
 
-5) BİLİNEN EKSİKLER
+5) SIK SORUNLAR
+---------------
+ - Oyun siyah pencere olmadan doğrudan açılıyor: MelonLoader kurulmamış ya da
+   yanlış kurulmuş (MelonLoader klasöründe net6 yok, net35/net472 var).
+   HAZIR PAKET'i kullan. Yine olmazsa antivirüs winhttp.dll'i siliyor olabilir:
+   Windows Güvenliği > Virüs ve tehdit koruması > Koruma geçmişi.
+ - Siyah pencerede kırmızı yazı: "Uygulama Denetimi ilkesi bu dosyayı
+   engelledi (0x800711C7)": Windows 11'in Akıllı Uygulama Denetimi
+   MelonLoader'ın ürettiği dosyaları engelliyor. Windows Güvenliği >
+   Uygulama ve tarayıcı denetimi > Akıllı Uygulama Denetimi ayarları >
+   Kapalı. (Bu bir güvenlik ayarıdır, karar senin; Windows bazen tekrar
+   açılamayacağını söyler.)
+ - Epic'te oyun açılış ekranında uzun süre bekliyor: Epic arkada "bulut
+   eşitleme çakışması" penceresi açmış olabilir. Epic Games Launcher'ı öne
+   getir; yeni olan yerel kaydını korumak için "BULUTA YÜKLE"yi seç.
+ - Steam'i 2.55'e düşürdükten sonra "Error Generating Interop Assemblies":
+   <oyun klasörü>\MelonLoader\Dependencies\Il2CppAssemblyGenerator\Cpp2IL\cpp2il_out
+   klasörünü sil, oyunu yeniden aç.
+ - "Sürüm uyuşmuyor": ikinizin ana menüsünün köşesindeki oyun sürümü aynı
+   olmalı (Steam'de sonda S, Epic'te E harfi olur; o fark sorun değil).
+
+
+6) BİLİNEN EKSİKLER
 -------------------
- - Testlerin çoğu tek bilgisayarda yan yana iki oyunla yapıldı; iki ayrı
-   evden internet üzerinden tam bir oturum henüz yapılmadı.
+ - İki ayrı evden internet üzerinden ilk oturumlar yapıldı; hâlâ deneme
+   sürümüdür.
+ - Ölüm: yere yığılan arkadaşın 10 dakika içinde kaldırmazsa ölürsün;
+   eşyaların düştüğün yerde kalır, eşyasız devam edersin. Ayakta kimse
+   kalmazsa (herkes yerdeyse) 30 saniye sonra oyun biter ve ortak dünya
+   kaydı oyunun kendi kuralıyla silinir.
+ - Bazı rastgele doğan yer eşyaları (çubuk gibi) iki oyunda farklı yerde
+   olabilir.
  - 2 kişiyle denendi; 3-4 kişi henüz denenmedi (sunucu 4 kişi alır).
  - Şifre yok: sunucu açıkken adresini bilen ve modu kurmuş herkes
    katılabilir. Adresi sadece arkadaşlarınla paylaş, işin bitince kapat.
@@ -80,7 +128,8 @@ beklemesin), SesliKonusma = false, Dil = en (mod İngilizce).
  - Sadece Hayatta Kalma modu; hikâye modu desteklenmez, meydan okumalar
    ve Tales denenmedi.
  - Dünya sunucuyu açanın kaydında durur; o yokken ortak dünyada oynanmaz.
- - Uzun işler gerçek zamanla bekletir (2 saatlik iş yaklaşık 10 dakika).
+ - Uzun işler gerçek zamanla sürer (2 saatlik iş yaklaşık 10 dakika):
+   ilerleme çubuğu o kadar uzar.
  - Arkadaşın modun kendi modeliyle görünür; kıyafetler tür ve renge göre,
    hareketler basit.
  - Sesli konuşma Windows'un varsayılan mikrofon ve hoparlörünü kullanır,
@@ -89,7 +138,7 @@ beklemesin), SesliKonusma = false, Dil = en (mod İngilizce).
  - Oyun içinde ayar ekranı yok; mod sadece Türkçe ve İngilizce.
 
 
-6) GERİ BİLDİRİM VE DESTEK
+7) GERİ BİLDİRİM VE DESTEK
 --------------------------
 Hata ya da öneri: destek@topraklikgamedevstudio.com
 (Oyunda ORTAK OYUN > GERİ BİLDİRİM adresi kopyalar.)
