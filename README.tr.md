@@ -35,12 +35,19 @@ kaçar, aynı geceyi uyuyarak geçirirsiniz.
 
 ## Gerekenler
 
-- The Long Dark (Steam ya da Epic), **Hayatta Kalma modu**. Herkeste **aynı oyun sürümü** ve **aynı mod sürümü** olmalı.
+- The Long Dark (Steam ya da Epic), **Hayatta Kalma modu**. Herkeste **aynı oyun sürüm numarası** (ana menünün sol üstünde yazar, örneğin 2.55) ve **aynı mod sürümü** olmalı. Steam ve Epic oyuncuları birlikte oynayabilir: Epic'te en son sürüm 2.55 olduğu için Epic'teki arkadaşıyla oynayan Steam oyuncuları 2.55'e düşer (aşağıda). Mod 2.55'te de 2.60'ta da çalışır.
 - [MelonLoader](https://github.com/LavaGang/MelonLoader.Installer/releases) **0.7.3**.
 - Windows. Konuşmak istersen mikrofon.
 - En fazla 4 oyuncu (sen dahil).
 
 ## Kurulum
+
+**Kolay yol (önerilen):** [Sürümler](../../releases) sayfasından `TLD-Shared-World-<sürüm>-HAZIR-MelonLoader-dahil.zip`
+dosyasını indir. İçinde MelonLoader 0.7.3 ve mod birlikte gelir: oyunu kapat, oyun klasöründe varsa eski `MelonLoader`
+klasörünü, `winhttp.dll` ve `version.dll` dosyalarını sil, zip'in içindekileri `tld.exe`'nin yanına kopyala ve oyunu aç.
+Zip'teki `HAZIR-KURULUM-OKU.txt` aynısını Türkçe ve İngilizce anlatır.
+
+**Elle kurulum:**
 
 1. MelonLoader kurucusuyla The Long Dark'a MelonLoader 0.7.3'ü kur, sonra oyunu bir kez açıp kapat
    (ilk açılış birkaç dakika sürebilir).
@@ -49,6 +56,25 @@ kaçar, aynı geceyi uyuyarak geçirirsiniz.
    Elle: `Mods\TLDCoop.dll` dosyasını oyunun `Mods` klasörüne, `UserLibs` içindeki üç DLL'i oyunun
    `UserLibs` klasörüne kopyala.
 4. Oyunu aç. MelonLoader penceresinde **TLD Shared World (Ortak Dunya)** yazısını görmelisin.
+
+### Sık sorunlar
+
+- **Oyun siyah MelonLoader penceresi olmadan açılıyor**: MelonLoader kurulmamış ya da yanlış türde kurulmuş
+  (klasöründe `net6` yok, `net35`/`net472` var). Hazır paketi kullan. Yine olursa antivirüs `winhttp.dll`'i
+  siliyor olabilir (Windows Güvenliği > Koruma geçmişi).
+- **Kırmızı yazı "0x800711C7" (Uygulama Denetimi ilkesi bu dosyayı engelledi)**: Windows 11'in Akıllı Uygulama
+  Denetimi MelonLoader'ın ürettiği dosyaları engelliyor. Windows Güvenliği > Uygulama ve tarayıcı denetimi >
+  Akıllı Uygulama Denetimi > Kapalı (bir güvenlik ayarıdır, karar senin).
+- **Epic: oyun yükleme ekranında bekliyor**: Epic arkada bulut eşitleme çakışması penceresi açmış olabilir.
+  Epic Games Launcher'ı öne getir, yeni olan yerel kaydını korumak için *Buluta yükle*'yi seç.
+- **Steam'i düşürdükten sonra "Error Generating Interop Assemblies"**: oyun klasöründe
+  `MelonLoader\Dependencies\Il2CppAssemblyGenerator\Cpp2IL\cpp2il_out` klasörünü sil, oyunu yeniden aç.
+
+### Steam'i 2.55'e düşürmek
+
+Tarayıcıda ya da Win+R ile `steam://open/console` aç, `download_depot 305620 305621 3631420424042153719` yaz,
+"Depot download complete" yazısını bekle, sonra yazdığı klasördeki dosyaları oyun klasörünün üzerine kopyala
+(önce kayıtlarını yedekle). Oyunun otomatik güncellemesini kapat.
 
 ## Oynamak
 
@@ -105,20 +131,26 @@ satırın İngilizce ve Türkçe açıklaması var). İşe yarayanlardan bazıla
 
 Bu, küçük bir stüdyonun hazırladığı bir deneme sürümü. Bildiğimiz eksikler şunlar:
 
-- **Çoğunlukla tek bilgisayarda denendi.** Testlerin çoğu aynı bilgisayarda yan yana açılan iki oyunla
-  yapıldı. İki ayrı evden internet üzerinden tam bir oturum henüz yapılmadı; bağlantı sorunları olabilir.
+- **Deneme sürümü.** İki ayrı evden internet üzerinden ilk oturumlar oynandı (0.14.1); 0.14.2'deki
+  düzeltmeler oradan geldi.
+- **Ölüm.** Yere yığıldığında süre içinde (10 dakika) kimse kaldırmazsa gerçekten ölürsün: eşyaların
+  düştüğün yerde kalır, eşyasız devam edersin. Ayakta kimse kalmazsa (herkes yerdeyse) 30 saniye sonra oyun
+  biter ve oyunun kendi ölümü çalışır: ortak dünyanın kaydı tek kişilik oyundaki gibi silinir.
+- **Rastgele doğan yer eşyaları** (çubuk gibi) iki oyunda farklı yerde olabilir; birinde alınan diğerinde
+  kalabilir.
 - **2 oyuncuyla denendi.** Sunucu 4 kişi alıyor; uyku, yere yığılma ve hayvanlar ikiden fazla kişiye göre
   yazıldı, ama 3 ve 4 kişilik oyun henüz denenmedi.
 - **Şifre yok.** Sunucun açıkken adresini bilen ve modu kurmuş herkes (oyuncu sınırına kadar) katılabilir.
   Adresi yalnızca arkadaşlarınla paylaş ve işin bitince sunucuyu kapat.
 - **İnternet için kapı açık olmalı.** UPnP ya da port yönlendirme (veya VPN) olmadan başka evdeki arkadaş bağlanamaz.
-- **Sürümler aynı olmalı.** Farklı oyun ya da mod sürümleri reddedilir. Bir oyun güncellemesi, yeni mod
+- **Sürümler aynı olmalı.** Farklı oyun sürüm numaraları ya da mod sürümleri reddedilir (aynı sürümün Steam ve Epic
+  kopyaları sorun değil). Bir oyun güncellemesi, yeni mod
   sürümü çıkana kadar modu bozabilir.
 - **Yalnızca Hayatta Kalma modu.** Wintermute hikâye modu desteklenmiyor; meydan okumalar ve Tales denenmedi.
 - **Dünya sunucunun kaydında durur.** Sunucuyu açan yokken oynanacak ortak dünya da yoktur.
-- **Uzun işler gerçek zamanla bekletir.** 2 saatlik bir parçalama seni yaklaşık 10 gerçek dakika meşgul
-  eder (F8 beklemeyi atlar, ama o zaman işin süresi dünyaya sayılmaz). Bu oyunun zaman hızlandırmasıyla
-  denendi; her iş türüyle elle henüz denenmedi.
+- **Uzun işler gerçek süre alır.** 2 saatlik bir iş yaklaşık 10 gerçek dakika sürer: oyunun ilerleme
+  çubuğu (ve kırma/parçalama) işin gerçek süresine uzatılır. Kendi ekranı olan işler (et çıkarma, yapma,
+  onarma) hâlâ hızlı biter, sonra süresini bekletir (F8 beklemeyi atlar, ama o zaman işin süresi dünyaya sayılmaz).
 - **Arkadaşının figürü modun kendi hayatta kalan modelidir**, oyunun karakterleri değildir. Kıyafetler
   türüne ve rengine göre gösterilir, hareketler basittir.
 - **Sesli konuşma** Windows'un varsayılan mikrofonunu ve hoparlörünü kullanır; yankı ya da gürültü

@@ -35,13 +35,22 @@ run from the same wolf and sleep through the same night.
 
 ## Requirements
 
-- The Long Dark (Steam or Epic), **survival mode**. Every player needs the **same game version** and the
-  **same mod version**.
+- The Long Dark (Steam or Epic), **survival mode**. Every player needs the **same game version number** (shown at the
+  top left of the main menu, for example 2.55) and the **same mod version**. Steam and Epic players can play together:
+  Epic's latest version is 2.55, so Steam players who play with Epic friends roll back to 2.55 (see below).
+  The mod runs on 2.55 and 2.60.
 - [MelonLoader](https://github.com/LavaGang/MelonLoader.Installer/releases) **0.7.3**.
 - Windows. A microphone if you want to talk.
 - Up to 4 players (you included).
 
 ## Installing
+
+**Easy way (recommended):** download `TLD-Shared-World-<version>-HAZIR-MelonLoader-dahil.zip` from
+[Releases](../../releases). It has MelonLoader 0.7.3 and the mod in one zip: close the game, delete any old
+`MelonLoader` folder, `winhttp.dll` and `version.dll` in the game folder, copy what is inside the zip next to
+`tld.exe`, and start the game. `HAZIR-KURULUM-OKU.txt` in the zip says the same in Turkish and English.
+
+**By hand:**
 
 1. Install MelonLoader 0.7.3 for The Long Dark with the MelonLoader installer, then start the game once
    and close it (the first start can take a few minutes).
@@ -50,6 +59,25 @@ run from the same wolf and sleep through the same night.
    By hand: copy `Mods\TLDCoop.dll` into the game's `Mods` folder and the three DLLs in `UserLibs`
    into the game's `UserLibs` folder.
 4. Start the game. The MelonLoader console should list **TLD Shared World (Ortak Dunya)**.
+
+### Common problems
+
+- **The game starts without the black MelonLoader window**: MelonLoader is missing or was installed as the wrong
+  kind (its folder has `net35`/`net472` but no `net6`). Use the ready package. If it still happens, your antivirus
+  may be deleting `winhttp.dll` (Windows Security > Protection history).
+- **Red text "0x800711C7" (Application Control policy has blocked this file)**: Windows 11's Smart App Control
+  blocks the files MelonLoader makes. Windows Security > App & browser control > Smart App Control > Off
+  (a security setting: your call).
+- **Epic: the game sits on its loading screen**: Epic may be showing a cloud save conflict window behind it.
+  Bring the Epic Games Launcher to the front and choose *Upload to cloud* to keep your newer local save.
+- **"Error Generating Interop Assemblies" after rolling Steam back**: delete
+  `MelonLoader\Dependencies\Il2CppAssemblyGenerator\Cpp2IL\cpp2il_out` in the game folder and start again.
+
+### Rolling Steam back to 2.55
+
+Open `steam://open/console` in a browser or Win+R, type
+`download_depot 305620 305621 3631420424042153719`, wait for "Depot download complete", then copy the files from
+the folder it names over your game folder (back up your saves first). Turn off automatic updates for the game.
 
 ## Playing
 
@@ -106,20 +134,26 @@ English and a Turkish description). Some useful ones:
 
 This is a beta made by a small studio. These are the things we know about:
 
-- **Mostly tested on one PC.** Most testing ran two copies of the game side by side. A full session
-  between two homes over the internet has not been done yet, so connection problems are possible.
+- **Beta.** The first sessions between two homes over the internet have been played (0.14.1); the list of
+  fixes in 0.14.2 came from them.
+- **Death.** If nobody lifts you within the downed time (10 minutes) you die for real: your gear stays where you
+  fell and you carry on without it. If nobody is left standing (everyone is down), the game ends after 30 seconds
+  and the game's own death runs: the shared world's save is deleted, as in single player.
+- **Random ground items** (sticks and the like) can lie in different places in the two games, so one picked up
+  in one game may stay in the other.
 - **2 players tested.** The server takes up to 4, and sleep, downed state and animals are written for
   more than two, but 3 and 4 player games have not been tried yet.
 - **No password.** While your server is open, anyone with your address and the same mod can join
   (up to the player limit). Share the address only with friends and stop the server when you are done.
 - **Internet needs an open port.** Without UPnP or port forwarding (or a VPN) a friend in another home cannot connect.
-- **Same versions only.** Different game or mod versions are refused. A game update can break the mod
+- **Same versions only.** Different game version numbers or mod versions are refused (Steam and Epic builds of the
+  same version are fine). A game update can break the mod
   until a new version is out.
 - **Survival mode only.** The Wintermute story mode is not supported; challenges and Tales are not tested.
 - **The world lives in the host's save.** Without the host there is no shared world to play in.
-- **Long jobs wait in real time.** A 2-hour harvest keeps you busy for about 10 real minutes
-  (F8 skips the wait, but then the job's time is not added to the world). This was tested with the
-  game's time acceleration, not yet with every kind of job by hand.
+- **Long jobs take real time.** A 2-hour job lasts about 10 real minutes: the game's progress bar (and breaking
+  things down) is stretched to the job's real time. Jobs with their own screen (harvesting, crafting, repairs)
+  still finish fast and then wait out the time (F8 skips the wait, but then the job's time is not added to the world).
 - **The friend's figure is the mod's own survivor model**, not the game's characters. Clothes are shown
   by kind and colour, and the animations are simple.
 - **Voice chat** uses Windows' default microphone and speakers, with no echo or noise filtering, and the
