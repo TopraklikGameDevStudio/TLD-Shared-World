@@ -12,7 +12,7 @@ namespace TLDCoop
 {
     public sealed class CoopMod : MelonMod
     {
-        public const string ModVersion = "0.14.2";
+        public const string ModVersion = "0.14.3";
         internal static bool AllowVersionMismatch => Instance?._allowMismatch?.Value ?? false;
 
         internal static CoopMod Instance;

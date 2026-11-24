@@ -343,6 +343,24 @@ namespace TLDCoop
             switch (c.Name)
             {
                 case "nop": return Ok();
+                case "ground": return Ok(_mod.Items.GroundSummary(a.Length > 0 ? a[0] : null));
+                case "groundreset": _mod.Items.GroundAskAgain(); return Ok("asking again");
+                case "ghost":
+                {
+                    // ghost <prefab>: an item in this game only (not sent), 2 m ahead: for testing that ground items follow the host
+                    if (a.Length < 1) return Fail("usage: ghost <prefab>");
+                    var t = GameManager.GetPlayerTransform();
+                    ItemSync.Applying = true;
+                    try
+                    {
+                        var gi = GearItem.InstantiateGearItem(a[0]);
+                        if (gi == null) return Fail("unknown prefab " + a[0]);
+                        gi.transform.position = t.position + t.forward * 2f + Vector3.up * 0.3f;
+                        gi.gameObject.SetActive(true);
+                        return Ok($"{a[0]} made here only at {P(gi.transform.position)}");
+                    }
+                    finally { ItemSync.Applying = false; }
+                }
                 case "wait":
                 {
                     float s = a.Length > 0 && TryF(a[0], out var v) ? Mathf.Clamp(v, 0f, 600f) : 1f;
@@ -520,6 +538,22 @@ namespace TLDCoop
                     if (a.Length < 3 || !TryF(a[0], out var x) || !TryF(a[1], out var y) || !TryF(a[2], out var z)) return Fail("usage: tp <x> <y> <z>");
                     pm.TeleportPlayer(new Vector3(x, y, z), me.rotation);
                     return Later(0.3f, () => Ok("now at " + P(GameManager.GetPlayerTransform().position)));
+                }
+                case "tpitem":
+                {
+                    if (a.Length < 1) return Fail("usage: tpitem <prefab>");
+                    GearItem best = null; float bestD = float.MaxValue;
+                    foreach (var g in UnityEngine.Object.FindObjectsOfType<GearItem>())
+                    {
+                        if (!Loose(g) || ItemSync.PrefabName(g.gameObject).IndexOf(a[0], StringComparison.OrdinalIgnoreCase) < 0) continue;
+                        float d = Vector3.Distance(g.transform.position, me.position);
+                        if (d < bestD) { bestD = d; best = g; }
+                    }
+                    if (best == null) return Fail("no loose " + a[0] + " here");
+                    var at = best.transform.position;
+                    pm.TeleportPlayer(at + new Vector3(0.6f, 0.3f, 0f), me.rotation);
+                    var tag = $"{ItemSync.PrefabName(best.gameObject)} at {P(at)} guid={ItemSync.GuidOf(best.gameObject) ?? "-"} was {F(bestD, "0.0")} m away";
+                    return Later(0.5f, () => Ok(tag));
                 }
                 case "tpfriend":
                 {
@@ -2286,6 +2320,7 @@ namespace TLDCoop
             try { CoopMenu.WriteState(sb); } catch (Exception e) { Line("menu", "? " + e.Message); }
             try { Line("lang", $"setting={L.Setting} english={L.En} game={L.GameLanguage}"); } catch (Exception e) { Line("lang", "? " + e.Message); }
             try { _mod.Map.WriteState(sb); } catch (Exception e) { Line("map", "? " + e.Message); }
+            try { sb.Append("ground: ").Append(_mod.Items.GroundLast).Append(" | ").Append(_mod.Items.GroundSummary(null)).Append('\n'); } catch (Exception e) { Line("ground", "? " + e.Message); }
             try { _mod.Voice.WriteState(sb); } catch (Exception e) { Line("voice", "? " + e.Message); }
             try { var pr = System.Diagnostics.Process.GetCurrentProcess(); Line("memory_mb", $"working_set={pr.WorkingSet64 / 1048576} private={pr.PrivateMemorySize64 / 1048576} managed={GC.GetTotalMemory(false) / 1048576}"); } catch { }
             Line("port_opener", PortOpener.Status); Line("port_opened", PortOpener.Opened); Line("public_address", PortOpener.PublicAddress ?? "-");

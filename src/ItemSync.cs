@@ -33,6 +33,7 @@ namespace TLDCoop
             _worldShared = worldShared;
             _net.OnMessage += OnMessage;
             _net.OnStopped += () => { _queued.Clear(); _sentInitial.Clear(); };
+            InitGround();
         }
 
         private bool Active => _net.IsConnected && _worldShared() && WorldSync.InGame();
@@ -132,6 +133,7 @@ namespace TLDCoop
                 guid = System.Guid.NewGuid().ToString();
                 try { ObjectGuid.MaybeAttachObjectGuidAndRegister(go, guid); } catch (Exception e) { CoopMod.Log("Attach guid: " + e.Message); }
             }
+            NoteLocalDrop(dropped);
             if (!quiet) CoopMod.Log($"Dropped {PrefabName(go)}");
             var w = _net.Begin(Msg.ItemSpawned);
             w.Put(CoopMod.CurrentScene());
@@ -549,13 +551,13 @@ namespace TLDCoop
 
         public void Update()
         {
-            if (!WorldSync.InGame()) { _appliedScene = null; return; }
+            if (!WorldSync.InGame()) { _appliedScene = null; _groundScene = null; return; }
             var scene = CoopMod.CurrentScene();
             if (scene != _appliedScene)
             {
                 // new scene: give the game a few seconds to restore its own objects first
                 _appliedScene = scene;
-                ResetContainers(); ResetFires(); ResetCarcasses();
+                ResetContainers(); ResetFires(); ResetCarcasses(); _groundScene = null;
                 _sceneReadyAt = Time.realtimeSinceStartup + 4f;
                 return;
             }
@@ -574,6 +576,7 @@ namespace TLDCoop
                 try { FlushPendingDrops(); } catch (Exception e) { CoopMod.Log("Pending drops: " + e.Message); }
                 try { WatchCarcasses(); DoCarcassRetries(); } catch (Exception e) { if (!_loggedCarcassError) { _loggedCarcassError = true; CoopMod.Log("Carcass watch: " + e); } }
                 try { WatchFires(); } catch (Exception e) { if (!_loggedFireError) { _loggedFireError = true; CoopMod.Log("Fire watch: " + e); } }
+                try { TickGround(scene, Time.realtimeSinceStartup); } catch (Exception e) { CoopMod.Log("Ground items: " + e.Message); }
             }
             else if (_net.Mode != NetMode.Off && !_loggedInactive)
             {

@@ -49,6 +49,8 @@ namespace TLDCoop
         Look = 88,                 // player -> everyone (host relays under the sender's real id, and tells a newcomer every look it knows): id, flags (1 hat, 2 scarf, 4 gloves), 6 x RGB (hat, scarf, torso, hands, legs, boots)
         Wind = 89,                 // host -> clients: serialized wind (the client's own wind does not change phase on its own)
         MapReveal = 90,            // revealer -> everyone (host relays): id, kind (1 postcard/polaroid, 2 region map), key, flag
+        GroundRequest = 91,        // client -> host: scene (send me your loose items there)
+        GroundList = 92,           // host -> client: scene, count (-1 = not there yet), per item guid, game id, prefab, pos, rot, hp, units, lit
     }
 
     internal static class Protocol
