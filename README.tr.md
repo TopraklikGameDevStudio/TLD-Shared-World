@@ -136,8 +136,8 @@ Bu, küçük bir stüdyonun hazırladığı bir deneme sürümü. Bildiğimiz ek
 - **Ölüm.** Yere yığıldığında süre içinde (10 dakika) kimse kaldırmazsa gerçekten ölürsün: eşyaların
   düştüğün yerde kalır, eşyasız devam edersin. Ayakta kimse kalmazsa (herkes yerdeyse) 30 saniye sonra oyun
   biter ve oyunun kendi ölümü çalışır: ortak dünyanın kaydı tek kişilik oyundaki gibi silinir.
-- **Rastgele doğan yer eşyaları** (çubuk gibi) iki oyunda farklı yerde olabilir; birinde alınan diğerinde
-  kalabilir.
+- **Yerdeki eşyalar sunucuya uyar.** Bir bölgeye ya da binaya girdiğinde yerdeki eşyalar (çubuk gibi) sunucunun
+  oyunuyla aynı yapılır (0.14.3). Son 30 saniyede senin bıraktığın eşya ve yanan meşale/fişek korunur.
 - **2 oyuncuyla denendi.** Sunucu 4 kişi alıyor; uyku, yere yığılma ve hayvanlar ikiden fazla kişiye göre
   yazıldı, ama 3 ve 4 kişilik oyun henüz denenmedi.
 - **Şifre yok.** Sunucun açıkken adresini bilen ve modu kurmuş herkes (oyuncu sınırına kadar) katılabilir.

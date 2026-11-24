@@ -139,8 +139,9 @@ This is a beta made by a small studio. These are the things we know about:
 - **Death.** If nobody lifts you within the downed time (10 minutes) you die for real: your gear stays where you
   fell and you carry on without it. If nobody is left standing (everyone is down), the game ends after 30 seconds
   and the game's own death runs: the shared world's save is deleted, as in single player.
-- **Random ground items** (sticks and the like) can lie in different places in the two games, so one picked up
-  in one game may stay in the other.
+- **Ground items follow the host.** When you arrive in a region or building, the loose items on the ground
+  (sticks and the like) are made to match the host's game (0.14.3). An item you dropped in the last 30 seconds
+  and lit torches or flares are kept.
 - **2 players tested.** The server takes up to 4, and sleep, downed state and animals are written for
   more than two, but 3 and 4 player games have not been tried yet.
 - **No password.** While your server is open, anyone with your address and the same mod can join
