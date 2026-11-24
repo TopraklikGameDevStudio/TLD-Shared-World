@@ -118,8 +118,8 @@ jobs do not wait), SesliKonusma = false (no voice), Dil = tr (Turkish).
    where you fell and you carry on without it. If nobody is left standing
    (everyone is down), the game ends after 30 seconds and the shared world
    save is deleted by the game's own rule.
- - Some randomly placed ground items (sticks) can lie in different places
-   in the two games.
+ - Ground items (sticks and the like) follow the host's game when you enter
+   a region or building; something you dropped in the last 30 seconds is kept.
  - Tested with 2 players; 3-4 players not tried yet (the server takes 4).
  - No password: while your server is open, anyone with your address and the
    mod can join. Share it only with friends and stop the server afterwards.

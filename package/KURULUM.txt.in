@@ -117,8 +117,8 @@ beklemesin), SesliKonusma = false, Dil = en (mod İngilizce).
    eşyaların düştüğün yerde kalır, eşyasız devam edersin. Ayakta kimse
    kalmazsa (herkes yerdeyse) 30 saniye sonra oyun biter ve ortak dünya
    kaydı oyunun kendi kuralıyla silinir.
- - Bazı rastgele doğan yer eşyaları (çubuk gibi) iki oyunda farklı yerde
-   olabilir.
+ - Yerdeki eşyalar (çubuk gibi) bir bölgeye ya da binaya girince sunucunun
+   oyunuyla aynı yapılır; son 30 saniyede bıraktığın eşya korunur.
  - 2 kişiyle denendi; 3-4 kişi henüz denenmedi (sunucu 4 kişi alır).
  - Şifre yok: sunucu açıkken adresini bilen ve modu kurmuş herkes
    katılabilir. Adresi sadece arkadaşlarınla paylaş, işin bitince kapat.
